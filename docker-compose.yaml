@@ -118,12 +118,11 @@ services:
       - WORKFLOW_FAILURE_RESTART_DELAY_SECONDS=${WORKFLOW_FAILURE_RESTART_DELAY_SECONDS}
       - WORKSPACE_DOCKER_MOUNT=${WORKSPACE_DOCKER_MOUNT}
       - WORKSPACE_ROOT=${WORKSPACE_ROOT}
-    configs:
-      - flags
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - workspace:${WORKSPACE_ROOT}
       - ${LOCAL_ROOT}:${LOCAL_ROOT}
+      - airbyte_flags:/flags
     ports:
       - "9000"
     networks:
@@ -176,13 +175,12 @@ services:
       - WORKSPACE_ROOT=${WORKSPACE_ROOT}
     ports:
       - "8001"
-    configs:
-      - flags
     volumes:
       - workspace:${WORKSPACE_ROOT}
       - data:${CONFIG_ROOT}
       - ${LOCAL_ROOT}:${LOCAL_ROOT}
       - ./configs:/app/configs:ro
+      - airbyte_flags:/flags
     networks:
       - airbyte_internal
     depends_on:
@@ -243,10 +241,9 @@ services:
       - TEMPORAL_HISTORY_RETENTION_IN_DAYS=${TEMPORAL_HISTORY_RETENTION_IN_DAYS}
       - UPDATE_DEFINITIONS_CRON_ENABLED=${UPDATE_DEFINITIONS_CRON_ENABLED}
       - WORKSPACE_ROOT=${WORKSPACE_ROOT}
-    configs:
-      - flags
     volumes:
       - workspace:${WORKSPACE_ROOT}
+      - airbyte_flags:/flags
     networks:
       - airbyte_internal
     depends_on:
@@ -317,38 +314,6 @@ volumes:
     name: ${DATA_DOCKER_MOUNT}
   db:
     name: ${DB_DOCKER_MOUNT}
-configs:
-  flags:
-    # Adding inline flags.yml to run on environments where adding extra files
-    # is tricky, such as Portainer stacks
-    content: |
-      flags:
-      - name: performance.backgroundJsonSchemaValidation
-        serve: false
-      - name: heartbeat.failSync
-        serve: true
-      - name: connectors.versionOverridesEnabled
-        serve: true
-      - name: billing.newTrialPolicy
-        serve: false
-      - name: heartbeat-max-seconds-between-messages
-        serve: "10800"
-      - name: use-new-notification-workflow
-        serve: false
-      - name: validation.removeValidationLimit
-        serve: false
-      - name: connection.columnSelection
-        serve: true
-      - name: refreshSchema.period.hours
-        serve: 24
-      - name: concurrent.source.stream.read
-        serve: false
-      - name: platform.add-scheduling-jitter
-        serve: false
-      - name: connectors.apm-enabled
-        serve: false
-      - name: platform.use-new-schema-update-notification
-        serve: false
 networks:
   airbyte_public:
   airbyte_internal:
